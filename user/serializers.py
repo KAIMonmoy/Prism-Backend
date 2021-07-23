@@ -3,6 +3,7 @@ from user.models import PrismUser
 
 
 class CustomUserSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
     user_name = serializers.CharField(max_length=63, required=True)
     email = serializers.EmailField(required=True)
     password = serializers.CharField(min_length=8, write_only=True, style={'input_type': 'password'})
@@ -13,7 +14,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PrismUser
-        fields = ('user_name', 'email', 'password', 'first_name', 'last_name', 'address', 'phone',)
+        fields = ('id', 'user_name', 'email', 'password', 'first_name', 'last_name', 'address', 'phone',)
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):

@@ -62,4 +62,3 @@ class CustomUserSearch(ListAPIView):
     filter_backends = (DjangoFilterBackend, filters.SearchFilter,)
     filter_class = UserFilter
     filter_fields = ('user_name', 'email', 'first_name', 'last_name')
-
