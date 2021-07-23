@@ -161,5 +161,29 @@ class TeamMemberRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
             return Response({'error': 'Access restricted to workspace owner only'}, status=status.HTTP_403_FORBIDDEN)
 
         instance = self.get_object()
+
+        update = Update()
+        update.workspace = workspace
+        update.message = f'{instance.member.first_name} {instance.member.last_name} removed from {workspace.name}'
+        update.save()
+
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class UpdateList(generics.ListAPIView):
+    serializer_class = UpdateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Update.objects.all()
+
+    def list(self, request, **kwargs):
+        pk = kwargs.get('pk')
+        user = self.request.user
+        workspace = get_object_or_404(Workspace, pk=pk)
+        if not TeamMember.objects.filter(member=user, workspace=workspace).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+        update_queryset = Update.objects.filter(workspace=workspace).order_by('-created')
+        serializer = UpdateSerializer(update_queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
