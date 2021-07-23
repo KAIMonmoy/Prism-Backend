@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, exceptions
 from user.models import PrismUser
 
 
@@ -6,7 +6,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     user_name = serializers.CharField(max_length=63, required=True)
     email = serializers.EmailField(required=True)
-    password = serializers.CharField(min_length=8, write_only=True, style={'input_type': 'password'})
+    password = serializers.CharField(min_length=8, write_only=True, style={'input_type': 'password'}, required=False)
     first_name = serializers.CharField(max_length=127, required=True)
     last_name = serializers.CharField(max_length=127, required=True)
     address = serializers.CharField(max_length=255, required=False, allow_null=True, allow_blank=True)
@@ -22,5 +22,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         instance = self.Meta.model(**validated_data)
         if password is not None:
             instance.set_password(password)
+        else:
+            raise exceptions.ValidationError('Password is required!')
         instance.save()
         return instance

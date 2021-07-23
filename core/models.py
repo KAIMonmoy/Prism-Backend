@@ -40,3 +40,21 @@ class TeamMember(models.Model):
 
     def __str__(self):
         return self.workspace.name + " | " + self.member.user_name
+
+
+class Meeting(models.Model):
+    agenda = models.CharField(max_length=255)
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, blank=True)
+    start_time = models.DateTimeField()
+    duration_mins = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.agenda
+
+
+class MeetingParticipant(models.Model):
+    meeting = models.ForeignKey(Meeting, on_delete=models.CASCADE)
+    participant = models.ForeignKey(PrismUser, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.meeting.agenda + " | " + self.participant.user_name

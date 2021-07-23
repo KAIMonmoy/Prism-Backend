@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from core.serializers import *
+from core.utils import send_email
 
 
 class WorkspaceListCreate(generics.ListCreateAPIView):
@@ -187,3 +188,5 @@ class UpdateList(generics.ListAPIView):
         update_queryset = Update.objects.filter(workspace=workspace).order_by('-created')
         serializer = UpdateSerializer(update_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
