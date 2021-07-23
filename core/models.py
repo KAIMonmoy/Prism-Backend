@@ -34,7 +34,7 @@ class TeamMember(models.Model):
         ("admin", "Admin"),
         ("member", "Member"),
     ]
-    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, blank=True)
     member = models.ForeignKey(PrismUser, on_delete=models.CASCADE)
     role = models.CharField(max_length=31, choices=TEAMMEMBER_ROLES, default="member")
 

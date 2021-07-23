@@ -7,5 +7,7 @@ app_name = 'core'
 
 urlpatterns = [
     path("", WorkspaceListCreate.as_view(), name="workspace-list-create"),
-    path("<int:pk>/", WorkspaceRetrieveUpdateDelete.as_view(), name="workspace-retriece-update-delete")
+    path("<int:pk>/", WorkspaceRetrieveUpdateDelete.as_view(), name="workspace-detail"),
+    path("<int:pk>/team/", TeamMemberListCreate.as_view(), name="teammember-list-create"),
+    path("<int:workspace_id>/team/<int:pk>/", TeamMemberRetrieveUpdateDelete.as_view(), name="teammember-detail"),
 ]

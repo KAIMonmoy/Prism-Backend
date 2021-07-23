@@ -13,6 +13,8 @@ class WorkspaceSerializer(serializers.ModelSerializer):
 
 
 class TeamMemberSerializer(serializers.ModelSerializer):
+    member = CustomUserSerializer(read_only=True)
+
     class Meta:
         model = TeamMember
         fields = "__all__"
