@@ -29,7 +29,7 @@ class WorkspaceListCreate(generics.ListCreateAPIView):
         teammember.role = 'admin'
         teammember.save()
 
-    def list(self, request, **kwargs):
+    def list(self, request, *args, **kwargs):
         user = self.request.user
         user_workspaces = Workspace.objects.filter(
             id__in=TeamMember.objects.filter(member=user).values_list('workspace', flat=True)
