@@ -39,6 +39,25 @@ class WorkspaceListCreate(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class WorkspaceRole(generics.RetrieveAPIView):
+    serializer_class = WorkspaceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Workspace.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        workspace = get_object_or_404(Workspace, pk=pk)
+        if request.user == workspace.owner:
+            return Response({'role': 'owner'}, status=status.HTTP_200_OK)
+        if TeamMember.objects.filter(member=request.user, workspace=workspace).exists():
+            member = TeamMember.objects.filter(member=request.user, workspace=workspace).first()
+            return Response({"role": member.role}, status=status.HTTP_200_OK)
+        else:
+            return Response({"role": None}, status=status.HTTP_200_OK)
+
+
 class WorkspaceRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = WorkspaceSerializer
     permission_classes = [IsAuthenticated]
@@ -188,5 +207,4 @@ class UpdateList(generics.ListAPIView):
         update_queryset = Update.objects.filter(workspace=workspace).order_by('-created')
         serializer = UpdateSerializer(update_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
