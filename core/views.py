@@ -2,6 +2,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 
 from core.serializers import *
 from core.utils import send_email
@@ -356,6 +357,7 @@ class ProjectListCreate(generics.ListCreateAPIView):
         workspace = get_object_or_404(Workspace, pk=pk)
         if not TeamMember.objects.filter(member=user, workspace=workspace).exists():
             return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
-        project_queryset = Project.objects.filter(workspace=workspace)
+        project_queryset = Project.objects.filter(workspace=workspace)\
+            .filter(Q(is_private=False) | Q(projectmember__member_id=user.id))
         serializer = ProjectSerializer(project_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
