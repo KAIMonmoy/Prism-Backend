@@ -121,7 +121,7 @@ class SubTask(models.Model):
         return self.name
 
 
-class TaskDpendency(models.Model):
+class TaskDependency(models.Model):
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
     dependency = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='dependecy_taksks')
 

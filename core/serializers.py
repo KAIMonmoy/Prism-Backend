@@ -72,14 +72,14 @@ class TaskMemberSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class TaskDpendencySerializer(serializers.ModelSerializer):
+class TaskDependencySerializer(serializers.ModelSerializer):
     class Meta:
-        model = TaskDpendency
+        model = TaskDependency
         fields = "__all__"
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    dependecy_taksks = TaskDpendencySerializer(many=True, read_only=True)
+    dependecy_taksks = TaskDependencySerializer(many=True, read_only=True)
     taskmember_set = TaskMemberSerializer(many=True, read_only=True)
     subtask_set = SubTaskSerializer(many=True, read_only=True)
 
