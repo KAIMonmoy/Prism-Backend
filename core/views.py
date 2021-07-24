@@ -398,6 +398,24 @@ class MeetingParticipantListCreate(generics.ListCreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
+class MeetingParticipantDestroy(generics.DestroyAPIView):
+    serializer_class = MeetingParticipantSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return MeetingParticipant.objects.all()
+
+    def destroy(self, request, *args, **kwargs):
+        workspace_id = kwargs.get('workspace_id')
+        workspace = get_object_or_404(Workspace, pk=workspace_id)
+        if not TeamMember.objects.filter(member=request.user, workspace=workspace, role='admin').exists():
+            return Response({'error': 'Access restricted to workspace admins only'}, status=status.HTTP_403_FORBIDDEN)
+
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class ProjectListCreate(generics.ListCreateAPIView):
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticated]

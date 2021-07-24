@@ -16,6 +16,8 @@ urlpatterns = [
     path("<int:workspace_id>/meetings/<int:pk>/", MeetingRetrieveUpdateDelete.as_view(), name="meeting-detail"),
     path("<int:workspace_id>/meetings/<int:meeting_id>/participants/", MeetingParticipantListCreate.as_view(),
          name="participant-list-create"),
+    path("<int:workspace_id>/meetings/<int:meeting_id>/participants/<int:pk>/", MeetingParticipantDestroy.as_view(),
+         name="participant-destroy"),
     path("<int:pk>/projects/", ProjectListCreate.as_view(), name="project-list-create"),
     path("<int:workspace_id>/projects/<int:pk>/", ProjectRetrieveUpdateDelete.as_view(), name="project-detail"),
 ]
