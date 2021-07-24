@@ -120,7 +120,7 @@ class SubTask(models.Model):
     status = models.BooleanField(default=False, blank=True)
 
     def __str__(self):
-        return self.task.name + " | " + self.name
+        return self.name
 
 
 class TaskDpendency(models.Model):

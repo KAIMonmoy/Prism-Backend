@@ -13,5 +13,6 @@ urlpatterns = [
     path("<int:pk>/updates/", UpdateList.as_view(), name="update-list"),
     path("<int:workspace_id>/team/<int:pk>/", TeamMemberRetrieveUpdateDelete.as_view(), name="teammember-detail"),
     path("<int:pk>/meetings/", MeetingListCreate.as_view(), name="meeting-list-create"),
+    path("<int:pk>/projects/", ProjectListCreate.as_view(), name="project-list-create"),
 ]
 

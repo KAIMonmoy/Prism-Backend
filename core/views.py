@@ -203,7 +203,7 @@ class UpdateList(generics.ListAPIView):
         workspace = get_object_or_404(Workspace, pk=pk)
         if not TeamMember.objects.filter(member=user, workspace=workspace).exists():
             return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
-        update_queryset = Update.objects.filter(workspace=workspace).order_by('-created')
+        update_queryset = Update.objects.filter(workspace=workspace).order_by('-created')[:20]
         serializer = UpdateSerializer(update_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -227,7 +227,7 @@ class MeetingListCreate(generics.ListCreateAPIView):
         if serializer.is_valid():
             instance = serializer.save()
         else:
-            return Response({'error': 'Invalid arguments for creating meetings'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid arguments for creating meeting'}, status=status.HTTP_400_BAD_REQUEST)
 
         update = Update()
         update.workspace = workspace
@@ -298,4 +298,64 @@ by {request.user.user_name}'
             return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
         meeting_queryset = Meeting.objects.filter(workspace=workspace)
         serializer = MeetingSerializer(meeting_queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# TODO: Meeting Retrieve, Update (Nomrmal Update, Add User), Delete
+
+
+class ProjectListCreate(generics.ListCreateAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Project.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        workspace = get_object_or_404(Workspace, pk=pk)
+        request.data['workspace'] = pk
+        if not TeamMember.objects.filter(member=request.user, workspace=workspace, role='admin').exists():
+            return Response({'error': 'Access restricted to workspace admins only'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = ProjectSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save()
+        else:
+            return Response({'error': 'Invalid arguments for creating project'}, status=status.HTTP_400_BAD_REQUEST)
+
+        update = Update()
+        update.workspace = workspace
+        update.message = f'Project {instance.name} created by {request.user.user_name}'
+        update.save()
+
+        if instance.is_private:
+            members = request.data.get('members', None)
+            if members is not None:
+                for user_id in members:
+                    try:
+                        project_member_user = PrismUser.objects.get(pk=user_id)
+                        if TeamMember.objects.filter(member=project_member_user, workspace=workspace).exists():
+                            project_member = ProjectMember()
+                            project_member.member = project_member_user
+                            project_member.project = instance
+                            project_member.save()
+                    except PrismUser.DoesNotExist:
+                        print(f'{user_id} does not exist')
+            if members is None or request.user.id not in members:
+                project_member = ProjectMember()
+                project_member.member = request.user
+                project_member.project = instance
+                project_member.save()
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        user = request.user
+        workspace = get_object_or_404(Workspace, pk=pk)
+        if not TeamMember.objects.filter(member=user, workspace=workspace).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+        project_queryset = Project.objects.filter(workspace=workspace)
+        serializer = ProjectSerializer(project_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
