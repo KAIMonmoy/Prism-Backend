@@ -80,15 +80,6 @@ class ProjectMember(models.Model):
         return self.project.name + " | " + self.member.user_name
 
 
-class Column(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True)
-    name = models.CharField(max_length=127)
-    index = models.PositiveSmallIntegerField()
-
-    def __str__(self):
-        return self.project.name + " - " + self.name
-
-
 class Task(models.Model):
     TASK_PRIORITIES = (
         ("high", "High"),
@@ -96,7 +87,13 @@ class Task(models.Model):
         ("low", "Low"),
     )
 
-    column = models.ForeignKey(Column, on_delete=models.CASCADE, blank=True)
+    COLUMN_OPTIONS = (
+        ("todo", "To Do"),
+        ("doing", "Doing"),
+        ("complete", "Complete"),
+    )
+
+    column = models.CharField(max_length=15, choices=COLUMN_OPTIONS, default="todo")
     name = models.CharField(max_length=127)
     index = models.PositiveSmallIntegerField()
     deadline = models.DateTimeField(default=None, blank=True, null=True)

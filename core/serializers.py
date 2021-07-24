@@ -86,11 +86,3 @@ class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = "__all__"
-
-
-class ColumnSerializer(serializers.ModelSerializer):
-    task_set = TaskSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Column
-        fields = "__all__"
