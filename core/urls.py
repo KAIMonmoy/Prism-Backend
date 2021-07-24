@@ -31,4 +31,8 @@ urlpatterns = [
          name="task-member-list-create"),
     path("<int:workspace_id>/projects/<int:project_id>/tasks/<int:task_id>/members/<int:pk>/",
          TaskMemberDestroy.as_view(), name="task-member-delete"),
+    path("<int:workspace_id>/projects/<int:project_id>/tasks/<int:task_id>/dependency/",
+         TaskDependencyListCreate.as_view(), name="task-dependency-list-create"),
+    path("<int:workspace_id>/projects/<int:project_id>/tasks/<int:task_id>/dependency/<int:pk>/",
+         TaskDependencyDestroy.as_view(), name="task-dependency-delete"),
 ]

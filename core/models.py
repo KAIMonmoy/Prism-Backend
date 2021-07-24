@@ -122,7 +122,7 @@ class SubTask(models.Model):
 
 
 class TaskDependency(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, blank=True, default=None)
     dependency = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='dependecy_taksks')
 
     def __str__(self):
