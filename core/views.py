@@ -182,6 +182,9 @@ class TeamMemberRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
 
         instance = self.get_object()
 
+        if workspace.owner.id == instance.member.id:
+            return Response({'error': 'Workspace owner cannot be removed'}, status=status.HTTP_400_BAD_REQUEST)
+
         update = Update()
         update.workspace = workspace
         update.message = f'{instance.member.first_name} {instance.member.last_name} removed from {workspace.name}'
