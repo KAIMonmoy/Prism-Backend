@@ -45,6 +45,7 @@ class TeamMember(models.Model):
 class Meeting(models.Model):
     agenda = models.CharField(max_length=255)
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, blank=True)
+    link = models.URLField(blank=True, null=True)
     start_time = models.DateTimeField()
     duration_mins = models.PositiveIntegerField()
 
@@ -58,3 +59,73 @@ class MeetingParticipant(models.Model):
 
     def __str__(self):
         return self.meeting.agenda + " | " + self.participant.user_name
+
+
+class Project(models.Model):
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, blank=True)
+    is_private = models.BooleanField(default=False, blank=True)
+    name = models.CharField(max_length=127)
+    createad_at = models.DateTimeField(default=timezone.now, blank=True)
+    is_archieved = models.BooleanField(default=False, blank=True)
+
+    def __str__(self):
+        return self.workspace.name + " - " + self.name
+
+
+class ProjectMember(models.Model):
+    member = models.ForeignKey(PrismUser, on_delete=models.CASCADE)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True)
+
+    def __str__(self):
+        return self.project.name + " | " + self.member.user_name
+
+
+class Column(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True)
+    name = models.CharField(max_length=127)
+    index = models.PositiveSmallIntegerField()
+
+    def __str__(self):
+        return self.project.name + " - " + self.name
+
+
+class Task(models.Model):
+    TASK_PRIORITIES = (
+        ("high", "High"),
+        ("mid", "Mid"),
+        ("low", "Low"),
+    )
+
+    column = models.ForeignKey(Column, on_delete=models.CASCADE, blank=True)
+    name = models.CharField(max_length=127)
+    index = models.PositiveSmallIntegerField()
+    deadline = models.DateTimeField(default=None, blank=True, null=True)
+    priority = models.CharField(max_length=15, choices=TASK_PRIORITIES, default="low")
+
+    def __str__(self):
+        return self.name
+
+
+class TaskMember(models.Model):
+    member = models.ForeignKey(PrismUser, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.task.name + " | " + self.member.user_name
+
+
+class SubTask(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    status = models.BooleanField(default=False, blank=True)
+
+    def __str__(self):
+        return self.task.name + " | " + self.name
+
+
+class TaskDpendency(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    dependency = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='dependecy_taksks')
+
+    def __str__(self):
+        return self.dependency.name + " > " + self.task.name
