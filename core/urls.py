@@ -23,4 +23,8 @@ urlpatterns = [
          name="project-member-list-create"),
     path("<int:workspace_id>/projects/<int:project_id>/members/<int:pk>/", ProjectMemberDestroy.as_view(),
          name="project-member-destroy"),
+    path("<int:workspace_id>/projects/<int:project_id>/tasks/", TaskListCreate.as_view(),
+         name="task-list-create"),
+    path("<int:workspace_id>/projects/<int:project_id>/tasks/<int:pk>/", TaskRetrieveUpdateDelete.as_view(),
+         name="task-detail"),
 ]
