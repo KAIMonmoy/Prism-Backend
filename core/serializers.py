@@ -52,6 +52,7 @@ class ProjectMemberSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     projectmember_set = ProjectMemberSerializer(read_only=True, many=True)
+    task_set = serializers.StringRelatedField(read_only=True, many=True)
 
     class Meta:
         model = Project
