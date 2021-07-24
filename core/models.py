@@ -106,7 +106,7 @@ class Task(models.Model):
 
 class TaskMember(models.Model):
     member = models.ForeignKey(PrismUser, on_delete=models.CASCADE)
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, blank=True, default=None)
 
     def __str__(self):
         return self.task.name + " | " + self.member.user_name
