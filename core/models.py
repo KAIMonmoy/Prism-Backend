@@ -93,6 +93,7 @@ class Task(models.Model):
         ("complete", "Complete"),
     )
 
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, default=None)
     column = models.CharField(max_length=15, choices=COLUMN_OPTIONS, default="todo")
     name = models.CharField(max_length=127)
     index = models.PositiveSmallIntegerField()
