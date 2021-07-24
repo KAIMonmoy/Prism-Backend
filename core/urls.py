@@ -35,4 +35,8 @@ urlpatterns = [
          TaskDependencyListCreate.as_view(), name="task-dependency-list-create"),
     path("<int:workspace_id>/projects/<int:project_id>/tasks/<int:task_id>/dependency/<int:pk>/",
          TaskDependencyDestroy.as_view(), name="task-dependency-delete"),
+    path("<int:workspace_id>/projects/<int:project_id>/tasks/<int:task_id>/subtasks/",
+         SubTaskListCreate.as_view(), name="subtask-list-create"),
+    path("<int:workspace_id>/projects/<int:project_id>/tasks/<int:task_id>/subtasks/<int:pk>/",
+         SubTaskRetrieveUpdateDestroy.as_view(), name="subtask-detail"),
 ]

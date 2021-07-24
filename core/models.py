@@ -113,7 +113,7 @@ class TaskMember(models.Model):
 
 
 class SubTask(models.Model):
-    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, blank=True, default=None)
     name = models.CharField(max_length=255)
     status = models.BooleanField(default=False, blank=True)
 

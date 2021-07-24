@@ -952,3 +952,127 @@ class TaskDependencyDestroy(generics.DestroyAPIView):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class SubTaskListCreate(generics.ListCreateAPIView):
+    serializer_class = SubTaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SubTask.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        project_id = kwargs.get('project_id')
+        project = get_object_or_404(Project, pk=project_id)
+
+        workspace_id = kwargs.get('workspace_id')
+
+        task_id = kwargs.get('task_id')
+        task = get_object_or_404(Task, pk=task_id)
+
+        if not TeamMember.objects.filter(member=request.user, workspace_id=workspace_id).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+
+        if project.is_private:
+            if not ProjectMember.objects.filter(project=project, member=request.user).exists():
+                return Response({'error': 'Access restricted to project members only'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        subtask_queryset = SubTask.objects.filter(task=task)
+        serializer = SubTaskSerializer(subtask_queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        project_id = kwargs.get('project_id')
+        project = get_object_or_404(Project, pk=project_id)
+
+        workspace_id = kwargs.get('workspace_id')
+
+        task_id = kwargs.get('task_id')
+        task = get_object_or_404(Task, pk=task_id)
+
+        if not TeamMember.objects.filter(member=request.user, workspace_id=workspace_id).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+
+        if project.is_private:
+            if not ProjectMember.objects.filter(project=project, member=request.user).exists():
+                return Response({'error': 'Access restricted to project members only'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        subtask_name = request.data.get("name")
+        if subtask_name is None:
+            return Response({'error': 'Invalid subtask name'}, status=status.HTTP_400_BAD_REQUEST)
+
+        subtask = SubTask()
+        subtask.name = subtask_name
+        subtask.task = task
+        subtask.status = request.data.get("status", False)
+        subtask.save()
+
+        serializer = SubTaskSerializer(subtask)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class SubTaskRetrieveUpdateDestroy(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = SubTaskSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SubTask.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        project_id = kwargs.get('project_id')
+        project = get_object_or_404(Project, pk=project_id)
+
+        workspace_id = kwargs.get('workspace_id')
+
+        if not TeamMember.objects.filter(member=request.user, workspace_id=workspace_id).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+
+        if project.is_private:
+            if not ProjectMember.objects.filter(project=project, member=request.user).exists():
+                return Response({'error': 'Access restricted to project members only'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        subtask = self.get_object()
+        serializer = SubTaskSerializer(subtask)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        project_id = kwargs.get('project_id')
+        project = get_object_or_404(Project, pk=project_id)
+
+        workspace_id = kwargs.get('workspace_id')
+
+        if not TeamMember.objects.filter(member=request.user, workspace_id=workspace_id).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+
+        if project.is_private:
+            if not ProjectMember.objects.filter(project=project, member=request.user).exists():
+                return Response({'error': 'Access restricted to project members only'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        project_id = kwargs.get('project_id')
+        project = get_object_or_404(Project, pk=project_id)
+
+        workspace_id = kwargs.get('workspace_id')
+
+        if not TeamMember.objects.filter(member=request.user, workspace_id=workspace_id).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+
+        if project.is_private:
+            if not ProjectMember.objects.filter(project=project, member=request.user).exists():
+                return Response({'error': 'Access restricted to project members only'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
