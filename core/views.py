@@ -356,6 +356,48 @@ class MeetingRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class MeetingParticipantListCreate(generics.ListCreateAPIView):
+    serializer_class = MeetingParticipantSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return MeetingParticipant.objects.all()
+
+    def list(self, request, *args, **kwargs):
+        pk = kwargs.get('workspace_id')
+        workspace = get_object_or_404(Workspace, pk=pk)
+        if not TeamMember.objects.filter(member=request.user, workspace=workspace).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+        meeting_queryset = MeetingParticipant.objects.filter(meeting_id=kwargs.get('meeting_id'))
+        serializer = MeetingParticipantSerializer(meeting_queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def create(self, request, *args, **kwargs):
+        pk = kwargs.get('workspace_id')
+        workspace = get_object_or_404(Workspace, pk=pk)
+        if not TeamMember.objects.filter(member=request.user, workspace=workspace, role='admin').exists():
+            return Response({'error': 'Access restricted to workspace admins only'}, status=status.HTTP_403_FORBIDDEN)
+
+        user_id = request.data.get('participant', None)
+        if user_id is None or not TeamMember.objects.filter(member_id=user_id, workspace=workspace).exists():
+            return Response({'error': 'Invalid participant id'}, status=status.HTTP_400_BAD_REQUEST)
+
+        meeting_id = kwargs.get('meeting_id')
+        if MeetingParticipant.objects.filter(meeting_id=meeting_id, participant_id=user_id).exists():
+            return Response({'error': 'Already added to the meeting'}, status=status.HTTP_400_BAD_REQUEST)
+
+        meeting = get_object_or_404(Meeting, pk=meeting_id)
+        user = get_object_or_404(PrismUser, pk=user_id)
+
+        meeting_participant = MeetingParticipant()
+        meeting_participant.meeting = meeting
+        meeting_participant.participant = user
+        meeting_participant.save()
+
+        serializer = MeetingParticipantSerializer(meeting_participant)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 class ProjectListCreate(generics.ListCreateAPIView):
     serializer_class = ProjectSerializer
     permission_classes = [IsAuthenticated]
