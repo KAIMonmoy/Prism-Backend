@@ -2,7 +2,6 @@ from django.urls import path
 
 from core.views import *
 
-
 app_name = 'core'
 
 urlpatterns = [
@@ -20,5 +19,8 @@ urlpatterns = [
          name="participant-destroy"),
     path("<int:pk>/projects/", ProjectListCreate.as_view(), name="project-list-create"),
     path("<int:workspace_id>/projects/<int:pk>/", ProjectRetrieveUpdateDelete.as_view(), name="project-detail"),
+    path("<int:workspace_id>/projects/<int:project_id>/members/", ProjectMemberListCreate.as_view(),
+         name="project-member-list-create"),
+    path("<int:workspace_id>/projects/<int:project_id>/members/<int:pk>/", ProjectMemberDestroy.as_view(),
+         name="project-member-destroy"),
 ]
-
