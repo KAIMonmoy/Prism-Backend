@@ -302,7 +302,58 @@ by {request.user.user_name}'
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# TODO: Meeting Retrieve, Update (Nomrmal Update, Add User), Delete
+class MeetingRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MeetingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Meeting.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        workspace_id = kwargs.get('workspace_id')
+        user = request.user
+        workspace = get_object_or_404(Workspace, pk=workspace_id)
+        if not TeamMember.objects.filter(member=user, workspace=workspace).exists():
+            return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
+        meeting = get_object_or_404(Meeting, pk=kwargs.get('pk'))
+        serializer = MeetingSerializer(meeting)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        workspace_id = kwargs.get('workspace_id')
+        workspace = get_object_or_404(Workspace, pk=workspace_id)
+        if not TeamMember.objects.filter(member=request.user, workspace=workspace, role='admin').exists():
+            return Response({'error': 'Access restricted to workspace admins only'}, status=status.HTTP_403_FORBIDDEN)
+
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        print(instance)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        update = Update()
+        update.workspace = workspace
+        update.message = f'Meeting {serializer.data["agenda"]} updated by {request.user.user_name}'
+        update.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        workspace_id = kwargs.get('workspace_id')
+        workspace = get_object_or_404(Workspace, pk=workspace_id)
+        if not TeamMember.objects.filter(member=request.user, workspace=workspace, role='admin').exists():
+            return Response({'error': 'Access restricted to workspace admins only'}, status=status.HTTP_403_FORBIDDEN)
+
+        instance = self.get_object()
+
+        update = Update()
+        update.workspace = workspace
+        update.message = f'Meeting {instance.agenda} deleted by {request.user.user_name}'
+        update.save()
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProjectListCreate(generics.ListCreateAPIView):
@@ -357,7 +408,62 @@ class ProjectListCreate(generics.ListCreateAPIView):
         workspace = get_object_or_404(Workspace, pk=pk)
         if not TeamMember.objects.filter(member=user, workspace=workspace).exists():
             return Response({'error': 'Access restricted to workspace members only'}, status=status.HTTP_403_FORBIDDEN)
-        project_queryset = Project.objects.filter(workspace=workspace)\
+        project_queryset = Project.objects.filter(workspace=workspace) \
             .filter(Q(is_private=False) | Q(projectmember__member_id=user.id))
         serializer = ProjectSerializer(project_queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ProjectRetrieveUpdateDelete(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ProjectSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Project.objects.all()
+
+    def retrieve(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        project = get_object_or_404(Project, pk=pk)
+        if project.is_private:
+            if not ProjectMember.objects.filter(project=project, member=request.user).exists():
+                return Response({'error': 'Access restricted to project members only'},
+                                status=status.HTTP_403_FORBIDDEN)
+        serializer = ProjectSerializer(project)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        project = get_object_or_404(Project, pk=pk)
+        if project.is_private:
+            if not ProjectMember.objects.filter(project=project, member=request.user).exists():
+                return Response({'error': 'Access restricted to project members only'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        request_visibility = request.data.get("is_private", None)
+        if not project.is_private and request_visibility is not None and request_visibility:
+            return Response({'error': 'Public Project cannot be made Private'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        project = get_object_or_404(Project, pk=pk)
+        if project.is_private:
+            if not ProjectMember.objects.filter(project=project, member=request.user).exists():
+                return Response({'error': 'Access restricted to project members only'},
+                                status=status.HTTP_403_FORBIDDEN)
+
+        update = Update()
+        update.workspace = project.workspace
+        update.message = f'Project {project.name} deleted by {request.user.user_name}'
+        update.save()
+
+        instance = self.get_object()
+
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
