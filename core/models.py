@@ -1,7 +1,13 @@
+from datetime import datetime
 from django.db import models
 from django.utils import timezone
 
 from user.models import PrismUser
+
+
+def upload_to(instance, filename):
+    time = str(int(datetime.now().timestamp()))
+    return f'workspaces/{time}_{filename}'
 
 
 class Workspace(models.Model):
@@ -19,6 +25,13 @@ class Workspace(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class WorkspaceImage(models.Model):
+    image = models.ImageField(upload_to=upload_to, blank=True, null=True, default=None)
+
+    def __str__(self):
+        return "Workspace Image"
 
 
 class Update(models.Model):

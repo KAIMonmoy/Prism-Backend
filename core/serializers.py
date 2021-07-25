@@ -26,6 +26,12 @@ class UpdateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class WorkspaceImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WorkspaceImage
+        fields = "__all__"
+
+
 class MeetingParticipantSerializer(serializers.ModelSerializer):
     participant = CustomUserSerializer(read_only=True)
 

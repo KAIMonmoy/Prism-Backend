@@ -4,6 +4,7 @@ from core.models import *
 
 
 admin.site.register(Workspace)
+admin.site.register(WorkspaceImage)
 admin.site.register(TeamMember)
 admin.site.register(Update)
 admin.site.register(Meeting)
