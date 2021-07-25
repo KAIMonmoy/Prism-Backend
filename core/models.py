@@ -15,6 +15,7 @@ class Workspace(models.Model):
     name = models.CharField(max_length=127, unique=True)
     owner = models.ForeignKey(PrismUser, on_delete=models.CASCADE, blank=True)
     type = models.CharField(max_length=31, choices=WORKSPACE_TYPES, default="it_company")
+    image = models.CharField(max_length=255, blank=True, null=True, default=None)
 
     def __str__(self):
         return self.name
