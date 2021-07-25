@@ -97,6 +97,7 @@ class Task(models.Model):
     column = models.CharField(max_length=15, choices=COLUMN_OPTIONS, default="todo")
     name = models.CharField(max_length=127)
     index = models.PositiveSmallIntegerField(blank=True, null=True)
+    created = models.DateTimeField(default=timezone.now, blank=True, null=True)
     deadline = models.DateTimeField(default=None, blank=True, null=True)
     priority = models.CharField(max_length=15, choices=TASK_PRIORITIES, default="low")
 
